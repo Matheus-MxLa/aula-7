@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed } from 'vue';
+  import { ref, computed, watch } from 'vue';
   const tarefas = ref([
   {
     id: 1,
@@ -40,6 +40,7 @@
 const novaTarefa = ref ('');
 const posiAlterada = ref (null);
 
+
 function addTarefa() {
   if (novaTarefa.value.trim().length >= 5) {
     if (posiAlterada.value !== null) {
@@ -69,7 +70,7 @@ function concluirLista(item) {
   item.status = item.status === 'concluida' ? 'pendente' : 'concluida';
 }
 function ordenarTarefa () {
-  tarefas.value.sort((a, b) => a.tarefa.localeCompare(b.tarefa))
+  tarefas.value.sort((a, b) => a.tarefa.localeCompare(b.tarefa).length)
 }
 const filtro = ref ('')
 const tarefaFiltrada = computed(() => {
@@ -80,27 +81,58 @@ const tarefaFiltrada = computed(() => {
     return tarefas.value
   }
 })
+const concluidas = ref (tarefaFiltrada.value.filter((item) => item.status == 'concluida').length);
+const pendentes = ref (tarefaFiltrada.value.filter((item) => item.status == 'pendente').length);
+watch(tarefaFiltrada, ()=> {
+  concluidas.value = tarefaFiltrada.value.filter((item) => item.status == 'concluida').length;
+  pendentes.value = tarefaFiltrada.value.filter((item) => item.status == 'pendente').length;
+})
 </script>
 
 <template>
   <div class="container">
     <h1>Lista de Tarefas</h1>
-    <input type="text" v-model="novaTarefa">
+    <input type="text" v-model="novaTarefa" placeholder="Adicionar Tarefa">
     <button @click="addTarefa()">Adicionar</button>
     <button @click="ordenarTarefa()">Ordenar</button>
     <ul>
-      <li v-for="item in tarefaFiltrada" :key="item.id" :class="{ concluida: item.status === 'concluida' }">
+      <li class="lista" v-for="item in tarefaFiltrada" :key="item.id" :class="{ concluida: item.status === 'concluida' }">
         {{ item.tarefa }}
-        <button @click="delTarefa(item)">Deletar</button>
-        <button @click="editTarefa(item)">Editar</button>
-        <button href="#" @click="concluirLista(item)">Concluida</button>
-      </li>
-    </ul>
-    <input type="text" v-model="filtro">
+          <div>
+            <button @click="delTarefa(item)">Deletar</button>
+            <button @click="editTarefa(item)">Editar</button>
+            <button @click="concluirLista(item)">Concluida</button>
+          </div>
+        </li>
+      </ul>
+    <input type="text" v-model="filtro" placeholder="Filtrar Tarefa">
+    <div class="contador">
+      <p>Pendentes: {{ pendentes }}</p>
+      <p>Concluidas: {{ concluidas }}</p>
+    </div>
   </div>
 </template>
 
 <style scoped>
+div.container {
+  text-align: center;
+}
+div ul li {
+  display: flex;
+  justify-content: space-between;
+}
+div ul li div button {
+  margin: 0 0 0 0;
+  border: none;
+}
+div ul li div button:first-child {
+  margin: 0 0 0 1vw;
+}
+div.container div.contador {
+  gap: 10px;
+  display: flex;
+  justify-content: center;
+}
 .concluida {
   text-decoration: line-through;
   color: rgb(69, 197, 75);
