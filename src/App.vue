@@ -83,6 +83,10 @@ const tarefaFiltrada = computed(() => {
 })
 const concluidas = ref (tarefaFiltrada.value.filter((item) => item.status == 'concluida').length);
 const pendentes = ref (tarefaFiltrada.value.filter((item) => item.status == 'pendente').length);
+watch(tarefas.value, ()=> {
+  concluidas.value = tarefaFiltrada.value.filter((item) => item.status == 'concluida').length;
+  pendentes.value = tarefaFiltrada.value.filter((item) => item.status == 'pendente').length;
+})
 watch(tarefaFiltrada, ()=> {
   concluidas.value = tarefaFiltrada.value.filter((item) => item.status == 'concluida').length;
   pendentes.value = tarefaFiltrada.value.filter((item) => item.status == 'pendente').length;
