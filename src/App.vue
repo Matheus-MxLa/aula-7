@@ -1,6 +1,7 @@
 <script setup>
-  import { ref, computed, watch } from 'vue';
-  const tarefas = ref([
+import { ref, computed, watch } from 'vue';
+import TaskChild from './components/TaskChild.vue'
+const tarefas = ref([
   {
     id: 1,
     tarefa: '1 Supino Inclinado',
@@ -37,8 +38,8 @@
     status: 'pendente',
   },
 ])
-const novaTarefa = ref ('');
-const posiAlterada = ref (null);
+const novaTarefa = ref('');
+const posiAlterada = ref(null);
 
 
 function addTarefa() {
@@ -57,8 +58,8 @@ function addTarefa() {
     novaTarefa.value = '';
   }
 }
-function delTarefa(item) {
-  let i = tarefas.value.indexOf(item);
+function delTarefa(idTarefa) {
+  let i = tarefas.value.findIndex(t => t.id === idTarefa);
   tarefas.value.splice(i, 1);
 }
 function editTarefa(item) {
@@ -69,10 +70,10 @@ function editTarefa(item) {
 function concluirLista(item) {
   item.status = item.status === 'concluida' ? 'pendente' : 'concluida';
 }
-function ordenarTarefa () {
+function ordenarTarefa() {
   tarefas.value.sort((a, b) => a.tarefa.localeCompare(b.tarefa).length)
 }
-const filtro = ref ('')
+const filtro = ref('')
 const tarefaFiltrada = computed(() => {
   if (filtro.value.trim().length > 0) {
     return tarefas.value.filter(item => item.tarefa.includes(filtro.value));
@@ -81,16 +82,17 @@ const tarefaFiltrada = computed(() => {
     return tarefas.value
   }
 })
-const concluidas = ref (tarefaFiltrada.value.filter((item) => item.status == 'concluida').length);
-const pendentes = ref (tarefaFiltrada.value.filter((item) => item.status == 'pendente').length);
-watch(tarefas.value, ()=> {
+const concluidas = ref(tarefaFiltrada.value.filter((item) => item.status == 'concluida').length);
+const pendentes = ref(tarefaFiltrada.value.filter((item) => item.status == 'pendente').length);
+watch(tarefas.value, () => {
   concluidas.value = tarefaFiltrada.value.filter((item) => item.status == 'concluida').length;
   pendentes.value = tarefaFiltrada.value.filter((item) => item.status == 'pendente').length;
 })
-watch(tarefaFiltrada, ()=> {
+watch(tarefaFiltrada, () => {
   concluidas.value = tarefaFiltrada.value.filter((item) => item.status == 'concluida').length;
   pendentes.value = tarefaFiltrada.value.filter((item) => item.status == 'pendente').length;
 })
+//:class="{ concluida: item.status === 'concluida' }
 </script>
 
 <template>
@@ -100,15 +102,17 @@ watch(tarefaFiltrada, ()=> {
     <button @click="addTarefa()">Adicionar</button>
     <button @click="ordenarTarefa()">Ordenar</button>
     <ul>
-      <li class="lista" v-for="item in tarefaFiltrada" :key="item.id" :class="{ concluida: item.status === 'concluida' }">
-        {{ item.tarefa }}
-          <div>
-            <button @click="delTarefa(item)">Deletar</button>
-            <button @click="editTarefa(item)">Editar</button>
-            <button @click="concluirLista(item)">Concluida</button>
-          </div>
-        </li>
-      </ul>
+      <TaskChild v-for="item in tarefaFiltrada"
+        :key="item.id"
+        :id="item.id"
+        :tarefa="item.tarefa"
+        :status="item.status"
+        @marcarconcluida="concluirLista(item)"
+        @cliqueDelete="delTarefa(item.id)"
+        @cliqueEdit="editTarefa(item)"
+        @cliqueConcluir="concluirLista(item)"
+      />
+    </ul>
     <input type="text" v-model="filtro" placeholder="Filtrar Tarefa">
     <div class="contador">
       <p>Pendentes: {{ pendentes }}</p>
@@ -121,26 +125,27 @@ watch(tarefaFiltrada, ()=> {
 div.container {
   text-align: center;
 }
+
 div ul li {
   display: flex;
   justify-content: space-between;
 }
+
 div ul li div button {
   margin: 0 0 0 0;
   border: none;
 }
+
 div ul li div button:first-child {
   margin: 0 0 0 1vw;
 }
+
 div.container div.contador {
   gap: 10px;
   display: flex;
   justify-content: center;
 }
-.concluida {
-  text-decoration: line-through;
-  color: rgb(69, 197, 75);
-}
+
 li {
   color: rgb(207, 67, 67);
 }
